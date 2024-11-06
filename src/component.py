@@ -60,7 +60,7 @@ class Component(ComponentBase):
 
         # Add timestamp column and save into out_table_path
         input_table = input_tables[0]
-        with open(input_table.full_path, 'r') as inp_file, open(table.full_path, mode='wt', encoding='utf-8', newline='') as out_file: #noqa
+        with open(input_table.full_path, 'r') as inp_file, open(table.full_path, mode='wt', encoding='utf-8', newline='') as out_file:  # noqa
             reader = csv.DictReader(inp_file)
 
             columns = list(reader.fieldnames)
