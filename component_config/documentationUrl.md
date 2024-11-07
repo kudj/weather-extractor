@@ -1,1 +1,1 @@
-https://github.com/kudj/weather-extractor.git/blob/master/README.md
+https://github.com/kudj/weather-extractor/blob/main/README.md

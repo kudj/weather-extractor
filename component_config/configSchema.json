@@ -2,14 +2,40 @@
   "type": "object",
   "title": "extractor configuration",
   "required": [
-    "print_hello"
+    "#api_token",
+    "units",
+    "location_column"
   ],
   "properties": {
-    "print_hello": {
-      "type": "boolean",
-      "title": "Print Hello",
-      "propertyOrder": 1
-    },
+    "#api_token": {
+          "type": "string",
+          "format": "password",
+          "title": "API Token",
+          "propertyOrder": 1
+        },
+    "units": {
+          "type": "string",
+          "required": true,
+          "title": "Units",
+          "enum": [
+            "metric",
+            "imperial"
+          ],
+          "options": {
+            "enum_titles": [
+              "Metric",
+              "Imperial"
+            ]
+          },
+          "default": "metric",
+          "description": "Which units to use for the weather data.",
+          "propertyOrder": 2
+        },
+    "location_column": {
+          "type": "string",
+          "title": "Location column",
+          "propertyOrder": 3
+        },
     "debug": {
       "type": "boolean",
       "title": "Debug",

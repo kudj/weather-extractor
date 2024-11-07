@@ -1,1 +1,1 @@
-https://github.com/kudj/weather-extractor.git
+https://github.com/kudj/weather-extractor

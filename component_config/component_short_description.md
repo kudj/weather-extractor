@@ -1,1 +1,1 @@
-Weather short description
+Tomorrow.io is provider of weather history and weather forcast data.

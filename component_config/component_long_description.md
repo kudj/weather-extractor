@@ -1,1 +1,1 @@
-Weather long description
+This extractor allows you to extract weather forcast data from Tomorrow.io API.

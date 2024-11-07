@@ -1,1 +1,1 @@
-https://github.com/kudj/weather-extractor.git/blob/master/LICENSE.md
+https://github.com/kudj/weather-extractor/blob/main/LICENSE.md
