@@ -1,11 +1,13 @@
 import logging
-from pydantic import BaseModel, Field, ValidationError, field_validator
+from pydantic import BaseModel, Field, ValidationError
 from keboola.component.exceptions import UserException
 from enum import Enum
+
 
 class Units(str, Enum):
     metric = "metric"
     imperial = "imperial"
+
 
 class Configuration(BaseModel):
     debug: bool = False

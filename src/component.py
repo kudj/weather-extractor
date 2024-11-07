@@ -3,7 +3,6 @@ Template Component main class.
 
 """
 import csv
-import json
 import logging
 from dataclasses import dataclass
 from datetime import datetime
@@ -16,10 +15,12 @@ from keboola.csvwriter import ElasticDictWriter
 from configuration import Configuration
 from weather.client import WeatherClient
 
+
 @dataclass
 class WriterCacheRecord:
     writer: ElasticDictWriter
     table_definition: TableDefinition
+
 
 class Component(ComponentBase):
     """
@@ -56,7 +57,8 @@ class Component(ComponentBase):
 
                 self.write_to_csv(response, "out_table")
 
-                # out_file = self.create_out_file_definition(f'forecast{row[params.location_column]}.json', tags=['forecast'])
+                # out_file = self.create_out_file_definition(
+                #     f'forecast{row[params.location_column]}.json', tags=['forecast'])
                 # with open(out_file.full_path, 'w') as json_file:
                 #     json.dump(response, json_file, indent=4)
 
@@ -84,6 +86,7 @@ class Component(ComponentBase):
         writer = self._writer_cache[table_name].writer
         for record in data:
             writer.writerow(record)
+
 
 """
         Main entrypoint

@@ -1,8 +1,7 @@
 from keboola.http_client import HttpClient
-from collections.abc import Iterator
-import pickle
 
 BASE_URL = "https://api.tomorrow.io/v4/"
+
 
 class WeatherClient(HttpClient):
     def __init__(self, api_key: str):
