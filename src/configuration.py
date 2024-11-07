@@ -1,12 +1,17 @@
 import logging
 from pydantic import BaseModel, Field, ValidationError, field_validator
 from keboola.component.exceptions import UserException
+from enum import Enum
 
+class Units(str, Enum):
+    metric = "metric"
+    imperial = "imperial"
 
 class Configuration(BaseModel):
-    print_hello: bool
-    api_token: str = Field(alias="#api_token")
     debug: bool = False
+    api_token: str = Field(alias="#api_token")
+    location_column: str = Field(default=None)
+    units: Units = Units.metric
 
     def __init__(self, **data):
         try:
@@ -17,9 +22,3 @@ class Configuration(BaseModel):
 
         if self.debug:
             logging.debug("Component will run in Debug mode")
-
-    @field_validator('api_token')
-    def token_must_be_uppercase(cls, v):
-        if not v.isupper():
-            raise UserException('API token must be uppercase')
-        return v

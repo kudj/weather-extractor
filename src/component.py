@@ -3,14 +3,23 @@ Template Component main class.
 
 """
 import csv
-from datetime import datetime
+import json
 import logging
+from dataclasses import dataclass
+from datetime import datetime
 
 from keboola.component.base import ComponentBase
 from keboola.component.exceptions import UserException
+from keboola.component.dao import TableDefinition
+from keboola.csvwriter import ElasticDictWriter
 
 from configuration import Configuration
+from weather.client import WeatherClient
 
+@dataclass
+class WriterCacheRecord:
+    writer: ElasticDictWriter
+    table_definition: TableDefinition
 
 class Component(ComponentBase):
     """
@@ -25,63 +34,56 @@ class Component(ComponentBase):
 
     def __init__(self):
         super().__init__()
+        self._writer_cache: dict[str, WriterCacheRecord] = dict()
 
     def run(self):
-        """
-        Main execution code
-        """
 
-        # ####### EXAMPLE TO REMOVE
-        # check for missing configuration parameters
         params = Configuration(**self.configuration.parameters)
 
-        # Access parameters in configuration
-        if params.print_hello:
-            logging.info("Hello World")
+        client = WeatherClient(api_key=params.api_token)
 
-        # get input table definitions
         input_tables = self.get_input_tables_definitions()
-        for table in input_tables:
-            logging.info(f'Received input table: {table.name} with path: {table.full_path}')
 
-        if len(input_tables) == 0:
-            raise UserException("No input tables found")
+        logging.debug("asdf")
 
-        # get last state data/in/state.json from previous run
-        previous_state = self.get_state_file()
-        logging.info(previous_state.get('some_parameter'))
+        if len(input_tables) != 1:
+            raise UserException("Exactly one input table is required")
 
-        # Create output table (Table definition - just metadata)
-        table = self.create_out_table_definition('output.csv', incremental=True, primary_key=['timestamp'])
+        with open(input_tables[0].full_path, 'r') as in_table:
+            reader = csv.DictReader(in_table)
+            for row in reader:
+                response = client.get_weather_forecast(location=row[params.location_column], units=params.units.value)
 
-        # get file path of the table (data/out/tables/Features.csv)
-        out_table_path = table.full_path
-        logging.info(out_table_path)
+                self.write_to_csv(response, "out_table")
 
-        # Add timestamp column and save into out_table_path
-        input_table = input_tables[0]
-        with open(input_table.full_path, 'r') as inp_file, open(table.full_path, mode='wt', encoding='utf-8', newline='') as out_file:  # noqa
-            reader = csv.DictReader(inp_file)
+                # out_file = self.create_out_file_definition(f'forecast{row[params.location_column]}.json', tags=['forecast'])
+                # with open(out_file.full_path, 'w') as json_file:
+                #     json.dump(response, json_file, indent=4)
 
-            columns = list(reader.fieldnames)
-            # append timestamp
-            columns.append('timestamp')
+        logging.info("Extraction finished")
 
-            # write result with column added
-            writer = csv.DictWriter(out_file, fieldnames=columns)
-            writer.writeheader()
-            for in_row in reader:
-                in_row['timestamp'] = datetime.now().isoformat()
-                writer.writerow(in_row)
+        for table, cache_record in self._writer_cache.items():
+            cache_record.writer.writeheader()
+            cache_record.writer.close()
+            self.write_manifest(cache_record.table_definition)
 
-        # Save table manifest (output.csv.manifest) from the Table definition
-        self.write_manifest(table)
+        self.write_state_file({"last_run": datetime.now().isoformat()})
 
-        # Write new state - will be available next run
-        self.write_state_file({"some_state_parameter": "value"})
+    def write_to_csv(self, data: list[dict],
+                     table_name: str,
+                     ) -> None:
 
-        # ####### EXAMPLE TO REMOVE END
+        if not self._writer_cache.get(table_name):
+            table_def = self.create_out_table_definition(f'{table_name}.csv', incremental=True,
+                                                         primary_key=['location', 'time'])
 
+            writer = ElasticDictWriter(table_def.full_path, ['location', 'time'])
+
+            self._writer_cache[table_name] = WriterCacheRecord(writer, table_def)
+
+        writer = self._writer_cache[table_name].writer
+        for record in data:
+            writer.writerow(record)
 
 """
         Main entrypoint
